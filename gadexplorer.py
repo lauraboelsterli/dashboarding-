@@ -2,12 +2,14 @@ import panel as pn
 from gadapi import GADAPI
 import sankey as sk
 
+
 # Loads javascript dependencies and configures Panel (required)
 pn.extension()
 
 # INITIALIZE API
 api = GADAPI()
-api.load_gad("gad.csv")
+# spotify is json, apple music is xml 
+api.load_gad('music_hm3.xml')
 
 
 # WIDGET DECLARATIONS
