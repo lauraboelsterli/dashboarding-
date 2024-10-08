@@ -1,5 +1,5 @@
 import panel as pn
-from gadapi import GADAPI
+from gadapi import stock_API
 import sankey as sk
 
 
@@ -7,18 +7,18 @@ import sankey as sk
 pn.extension()
 
 # INITIALIZE API
-api = GADAPI()
-# spotify is json, apple music is xml 
-api.load_gad('music_hm3.xml')
+api = stock_API()
+api.load_df('data/ETFprices.csv')
 
 
 # WIDGET DECLARATIONS
 
 # Search Widgets
 
-phenotype = pn.widgets.Select(name="Phenotype", options=api.get_phenotypes(), value='asthma')
-min_pub = pn.widgets.IntSlider(name="Min Publications", start=1, end=10, step=1, value=3)
-singular = pn.widgets.Checkbox(name="Singular Associations?", value=True)
+fund_name = pn.widgets.Select(name="Fund", options=api.get_funds(), value='AAA')
+
+timeseries_filter = pn.widgets.Select(name="Value of Interest", options = api.get_options(), value='close')
+# singular = pn.widgets.Checkbox(name="Singular Associations?", value=True)
 
 
 # Plotting widgets
@@ -29,22 +29,23 @@ height = pn.widgets.IntSlider(name="Height", start=200, end=2500, step=100, valu
 
 # CALLBACK FUNCTIONS
 
-def get_catalog(phenotype, min_pub, singular):
+def get_catalog(fund_name, timeseries_filter):
     global local
-    local = api.extract_local_network(phenotype, min_pub, singular)  # calling the api
+    local = api.extract_local_network(fund_name, timeseries_filter)  # calling the api
+    # print(local)
     table = pn.widgets.Tabulator(local, selectable=False)
     return table
 
 
-def get_plot(phenotype, min_pub, singular, width, height):
-    global local
-    fig = sk.make_sankey(local, "phenotype", "gene", vals="npubs", width=width, height=height)
-    return fig
+# def get_plot(phenotype, min_pub, singular, width, height):
+#     global local
+#     fig = sk.make_sankey(local, "phenotype", "gene", vals="npubs", width=width, height=height)
+#     return fig
 
 
 # CALLBACK BINDINGS (Connecting widgets to callback functions)
-catalog = pn.bind(get_catalog, phenotype, min_pub, singular)
-plot = pn.bind(get_plot, phenotype, min_pub, singular, width, height)
+catalog = pn.bind(get_catalog, fund_name, timeseries_filter)
+# plot = pn.bind(get_plot, phenotype, min_pub, singular, width, height)
 
 
 
@@ -55,9 +56,8 @@ card_width = 320
 
 search_card = pn.Card(
     pn.Column(
-        phenotype,
-        min_pub,
-        singular
+        fund_name,
+        timeseries_filter
 
     ),
     title="Search", width=card_width, collapsed=False
@@ -77,7 +77,7 @@ plot_card = pn.Card(
 # LAYOUT
 
 layout = pn.template.FastListTemplate(
-    title="GAD Explorer",
+    title="Stock Explorer",
     sidebar=[
         search_card,
         plot_card,
@@ -86,7 +86,7 @@ layout = pn.template.FastListTemplate(
     main=[
         pn.Tabs(
             ("Associations", catalog),  # Replace None with callback binding
-            ("Network", plot),  # Replace None with callback binding
+            # ("Network", plot),  # Replace None with callback binding
 
             active=1  # Which tab is active by default?
         )

@@ -10,70 +10,53 @@ from collections import Counter
 
 
 
-class GADAPI:
+class stock_API:
 
-    gad = None  # dataframe
+    fund_df = None  # dataframe
 
-    def load_gad(self, filename):
-        self.gad = pd.read_csv(filename)
-        print(self.gad)
+    def load_df(self, filename):
+        self.fund_df = pd.read_csv(filename)
+        # make sure its in datetime format for usability 
+        self.fund_df['price_date'] = pd.to_datetime(self.fund_df['price_date'])
+        # set date as index for better pandas time series functionality 
+        self.fund_df.set_index('price_date', inplace=True)
 
+        # print(self.fund_df)
 
-    def get_phenotypes(self):
+    def get_funds(self):
         """ Fetch the list of unique phenotypes (diseases)
         with at least one positive association in the gad dataset """
-        gady = self.gad[self.gad.association == 'Y']
-        gady.phenotype = gady.phenotype.str.lower()
-        phen = gady.phenotype.unique()
-        phen = [str(p) for p in phen if ";" not in str(p)]
-        return sorted(phen)
 
-    def extract_local_network(self, phenotype, min_pub, singular):
-
-        # postive associations only!
-        gad = self.gad[self.gad.association == 'Y']
-
-        # Focus on a particular set of columns
-        gad = gad[['phenotype', 'gene']]
-
-        # Convert the phenotype to lowercase
-        gad.phenotype = gad.phenotype.str.lower()
-
-        # Count publications (rows) for each unique disease-gene association
-        gad = gad.groupby(['phenotype', 'gene']).size().reset_index(name='npubs')
-
-        # Sort by npubs descending
-        gad.sort_values('npubs', ascending=False, inplace=True)
-
-        # discard associations with less than <min_pub> publications
-        gad = gad[gad.npubs >= min_pub]
-
-        # phenotype of interest
-        gad_pheno = gad[gad.phenotype == phenotype]
-
-        # Find all gad associations involving genes linked to our starting phenotype
-        gad = gad[gad.gene.isin(gad_pheno.gene)]
+        funds = self.fund_df['fund_symbol'].unique()
+        # print(funds, 'unique')
+        return sorted(funds)
 
 
-        # print(gad)
-        # print("LOCAL NETWORK")
+    def get_options(self):
+        df_columns = self.fund_df.columns.tolist()
+        # print(df_columns)
+        return df_columns
 
-        # Discard singular disease-gene associations
-        if not singular:
-            counts = Counter(gad.phenotype)
-            exclude = [k for k, v in counts.items() if v == 1]
-            gad = gad[~gad.phenotype.isin(exclude)]
+    def extract_local_network(self, fund, value_of_interest):
+        # filter based on choices 
+        fund_df = self.fund_df[self.fund_df['fund_symbol']== fund]
+        fund_df = self.fund_df[[value_of_interest]]
 
-        return gad
+        return fund_df
 
 
 def main():
 
-    gadapi = GADAPI()
-    gadapi.load_gad("gad.csv")
+    stockapi = stock_API()
+    stockapi.load_df('data/ETFprices.csv')
 
-    local = gadapi.extract_local_network("asthma", 5)
-    print(local)
+    local = stockapi.extract_local_network("AAA", 'open')
+    # print(local)
+    # funds = get_funds(self.fund_df)
+    funds = stockapi.get_funds()
+    # print(funds)
+    options = stockapi.get_options()
+    # print(options)
 
 
 if __name__ == '__main__':
