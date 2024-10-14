@@ -1,5 +1,5 @@
 import panel as pn
-from etf_api import etf_API
+from nick_etf_api import etf_API
 # import sankey as sk
 import datetime as dt
 
