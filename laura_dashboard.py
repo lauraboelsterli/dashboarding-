@@ -33,9 +33,12 @@ date_range_slider = pn.widgets.DateRangeSlider(
     step=2,
     width=300
 )
-width = pn.widgets.IntSlider(name="Width", start=250, end=2000, step=250, value=400)
-height = pn.widgets.IntSlider(name="Height", start=200, end=2500, step=100, value=300)
-
+ts_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value=600)
+ts_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=400)
+trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=50, value=300)
+trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=50, value=100)
+vol_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value=1000)
+vol_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=300)
 
 # this decorator tells the function when to rerun 
 @pn.depends(fund_name.param.value, watch=True)
@@ -92,7 +95,7 @@ def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height):
     return fig
 
 
-def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
+def get_trend_indicator(fund_name, timeseries_filter, date_range_slider, width=250, height=200):
     '''get trends for each fund automatically calculated (y value (chosen value of interest) 
     most recent value percentage change is computed by first value (from chosen start date) 
     and last value (from chosen end date)) measures done by indicators widget 
@@ -119,8 +122,8 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
             plot_type='line',
             pos_color='#5cb85c',
             neg_color='#d9534f',
-            width=250,
-            height=200
+            width=width,
+            height=height
         )
         
         # append each trend to the list
@@ -131,7 +134,7 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
 
 
 
-def get_total_volume_plot(fund_name, date_range_slider):
+def get_total_volume_plot(fund_name, date_range_slider, width=600, height=400):
     '''make bar plots for total volume for each given fund'''
     df = api.get_filtered_data(fund_name, 'volume', date_range_slider)
 
@@ -150,7 +153,9 @@ def get_total_volume_plot(fund_name, date_range_slider):
         title="Total Volume Traded Over Selected Date Range",
         xaxis_title="ETF",
         yaxis_title="Total Volume",
-        barmode='group'
+        barmode='group',
+        width = width,
+        height=height
     )
     
     return fig
@@ -161,9 +166,9 @@ def get_total_volume_plot(fund_name, date_range_slider):
 
 
 # time_slider = pn.bind(update_date_range, fund_name)
-plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, width, height)
-trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value)
-total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.param.value)
+plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height)
+trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value, trend_width, trend_height)
+total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.param.value, vol_width, vol_height)
 
 # maybe add average volume traded on the side of the volume plot (similar look to the trend indicators next to the time series plot)
 # also make the width and height of the cards adjustable
@@ -176,58 +181,53 @@ total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.
 # DASHBOARD WIDGET CONTAINERS ("CARDS")
 trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=400)  # Set height limit
 volume_plotting = pn.Column(total_volume_plot, height=400)
+volume_plot = pn.Row(total_volume_plot)
 # Combine into a single layout line
-plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable))
+plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable), volume_plot)
 
 
 
 card_width = 320
 
-# search_card = pn.Card(
-#     pn.Column(fund_name, timeseries_filter, date_range_slider),
-#     title="Search",
-#     width=card_width,
-#     height=100,
-#     collapsed=False
-#     # css_classes=['card-padding']
-# )
-
-
-# plot_card = pn.Card(
-#     pn.Column(
-#         width,
-#         height
-#     ),
-
-#     title="Plotting Dimensions", width=card_width, collapsed=True
-# )
-
-# stacked_cards = pn.Column(
-#     search_card,
-#     plot_card,
-#     sizing_mode='stretch_width'  
-# )
 search_card = pn.Card(
     pn.Column(fund_name, timeseries_filter, date_range_slider),
     title="Search",
     width=card_width,
-    sizing_mode='stretch_width',  # Expands to the width of the container
+    sizing_mode='stretch_width',  
     collapsed=False
 )
 
 plot_card = pn.Card(
-    pn.Column(width, height),
-    title="Plotting Dimensions",
+    pn.Column(ts_width, ts_height),
+    title="Time Series Dimensions",
     width=card_width,
-    sizing_mode='stretch_width',  # Expands to the width of the container
+    sizing_mode='stretch_width',  
+    collapsed=True
+)
+
+trend_card = pn.Card(
+    pn.Column(trend_width, trend_height),
+    title="Price Trend Dimensions",
+    width=card_width,
+    sizing_mode='stretch_width',  
+    collapsed=True
+)
+
+volume_card = pn.Card(
+    pn.Column(vol_width, vol_height),
+    title="Total Volume Dimensions",
+    width=card_width,
+    sizing_mode='stretch_width',  
     collapsed=True
 )
 
 stacked_cards = pn.Column(
     search_card,
     plot_card,
+    trend_card,
+    volume_card,
     sizing_mode='stretch_width'
-)
+    )
 
 # LAYOUT
 
@@ -239,11 +239,12 @@ layout = pn.template.FastListTemplate(
     theme= 'dark',
     theme_toggle=False,
     main=[
-        pn.Tabs(
-            ("ETF Time Series", plot_and_trend),
-            ("Volume Traded", volume_plotting),  # Replace None with callback binding
-            active=0  # Which tab is active by default
-        )
+        plot_and_trend
+        # pn.Tabs(
+            # ("ETF Time Series", plot_and_trend),
+            # ("Volume Traded", volume_plotting),  # Replace None with callback binding
+            # active=0  # Which tab is active by default
+        # )
 
     ],
     header_background='#a93226'
