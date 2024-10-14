@@ -8,15 +8,12 @@ import pandas as pd
 import altair as alt
 import plotly.graph_objects as go
 from matplotlib.figure import Figure
-import hvplot.pandas
+# import hvplot.pandas
 import time_series as ts
 
 # Loads javascript dependencies and configures Panel (required)
 pn.extension()
 
-# clean the code 
-# fix sizing 
-# fix colors to be consistenly color coded 
 
 # INITIALIZE API
 api = etf_API()
@@ -25,17 +22,19 @@ api.load_df('data/ETFprices.csv')
 
 # WIDGET DECLARATIONS
 # Search Widgets
-fund_name = pn.widgets.MultiSelect(name="ETFs", options=api.get_funds(), value=['SPY', 'QQQ', 'GLD'])
+fund_name = pn.widgets.MultiSelect(name="Select All ETFs of Interest", options=api.get_funds(), value=['SPY', 'QQQ', 'GLD'], 
+    height=250)
 # fund_name = pn.widgets.Select(name="Fund", options=api.get_funds(), value='AAA')
-timeseries_filter = pn.widgets.Select(name="Value of Interest", options = api.get_options(), value='close')
+timeseries_filter = pn.widgets.Select(name="Market Price Data", options = api.get_options(), value='close')
 date_range_slider = pn.widgets.DateRangeSlider(
-    name='Date Range Slider',
+    name='Select a Date Range',
     start=dt.datetime(1993, 1, 28), end=dt.datetime(2021, 11, 29),
     value=(dt.datetime(1993, 1, 28), dt.datetime(2021, 11, 29)),
-    step=2
+    step=2,
+    width=300
 )
-width = pn.widgets.IntSlider(name="Width", start=250, end=2000, step=250, value=1500)
-height = pn.widgets.IntSlider(name="Height", start=200, end=2500, step=100, value=800)
+# width = pn.widgets.IntSlider(name="Width", start=250, end=2000, step=250, value=1500)
+# height = pn.widgets.IntSlider(name="Height", start=200, end=2500, step=100, value=800)
 
 
 # this decorator tells the function when to rerun 
@@ -64,16 +63,6 @@ def update_date_range(fund_name):
 
 
 # CALLBACK FUNCTIONS
-
-def get_volume(fund_name, date_range_slider):
-    '''volume returned for each day in the time range'''
-    # global local
-    df = api.volume(fund_name, date_range_slider)  # calling the api
-    # table = pn.widgets.Tabulator(df, selectable=False)
-    table = pn.pane.DataFrame(df, width=500, height=300)
-    return table
-
-
 
 # time slider 
 def get_plotly(fund_name, timeseries_filter, date_range_slider):
@@ -107,7 +96,7 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
     '''get trends for each fund automatically calculated (y value (chosen value of interest) 
     most recent value percentage change is computed by first value (from chosen start date) 
     and last value (from chosen end date)) measures done by indicators widget 
-    and then each fund with its metrics gets returnes as column'''
+    and then each fund with its metrics gets returns as column'''
     # collecting all Trend indicators
     trends = []  
     
@@ -168,55 +157,48 @@ def get_total_volume_plot(fund_name, date_range_slider):
 
 
 
-
-
 # CALLBACK BINDINGS (Connecting widgets to callback functions)
 
-# catalog = pn.bind(get_catalog, fund_name, timeseries_filter)
 
-# returns volume for given day — can make it avg value per fund selected (and make it a pie chart???)
-catalog = pn.bind(get_volume, fund_name, date_range_slider)
 # time_slider = pn.bind(update_date_range, fund_name)
 plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider)
 trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value)
-# plot = pn.bind(get_plotly, fund_name, timeseries_filter, time_slider)
-# Bind this function to the layout if you want an aggregated volume view
 total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.param.value)
+# maybe add average volume traded on the side of the volume plot (similar look to the trend indicators next to the time series plot)
+# also make the width and height of the cards adjustable
+# and have consistent color coding across all plots 
 
 
 
 
 # DASHBOARD WIDGET CONTAINERS ("CARDS")
-# plot_and_trend = pn.Row(plot, trend_indicators)
-# plot_and_trend_and_volume = pn.Column(plot_and_trend, total_volume_plot)
-
-# Wrap `trend_indicators` in a scrollable Column
 trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=400)  # Set height limit
+volume_plotting = pn.Column(total_volume_plot, height=400)
 # Combine into a single layout line
-plot_and_trend_and_volume = pn.Column(pn.Row(plot, trend_indicators_scrollable), total_volume_plot)
-# plot_and_trend_and_volume = pn.Column(pn.Row(plot, trend_indicators), total_volume_plot)
+plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable))
 
 
 
 card_width = 320
 
 search_card = pn.Card(
-    pn.Column(
-        fund_name,
-        timeseries_filter, date_range_slider
-    ),
-    title="Search", width=card_width,height=300, collapsed=False
+    pn.Column(fund_name, timeseries_filter, date_range_slider),
+    title="Search",
+    width=card_width,
+    height=300,
+    collapsed=False
+    # css_classes=['card-padding']
 )
 
 
-plot_card = pn.Card(
-    pn.Column(
-        width,
-        height
-    ),
+# plot_card = pn.Card(
+#     pn.Column(
+#         width,
+#         height
+#     ),
 
-    title="Plot", width=card_width, collapsed=True
-)
+#     title="Plot", width=card_width, collapsed=True
+# )
 
 
 # LAYOUT
@@ -224,16 +206,16 @@ plot_card = pn.Card(
 layout = pn.template.FastListTemplate(
     title="ETF Explorer",
     sidebar=[
-        search_card,
-        plot_card
+        search_card
+        # plot_card
     ],
+    theme= 'dark',
     theme_toggle=False,
     main=[
         pn.Tabs(
-            # ("Volume Traded", catalog),  # Replace None with callback binding
-            ("ETF Time Series", plot_and_trend_and_volume)  # Replace None with callback binding
-
-            # active=1  # Which tab is active by default
+            ("ETF Time Series", plot_and_trend),
+            ("Volume Traded", volume_plotting),  # Replace None with callback binding
+            active=0  # Which tab is active by default
         )
 
     ],
