@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 
-def make_time_series(fund_name, filtered_local, timeseries_filter):
+def make_time_series(fund_name, filtered_local, timeseries_filter, width=800, height=400):
     fig = go.Figure()
 
     for etf in fund_name:
@@ -14,7 +14,9 @@ def make_time_series(fund_name, filtered_local, timeseries_filter):
         xaxis_title="Date",
         yaxis_title=timeseries_filter,
         legend_title="ETF",
-        hovermode="x unified"  # Shows the hover info for all traces at the same x-position
+        hovermode="x unified",  # Shows the hover info for all traces at the same x-position
+        width=width,
+        height=height
     )
 
     return fig

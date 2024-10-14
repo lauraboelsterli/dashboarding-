@@ -33,8 +33,8 @@ date_range_slider = pn.widgets.DateRangeSlider(
     step=2,
     width=300
 )
-# width = pn.widgets.IntSlider(name="Width", start=250, end=2000, step=250, value=1500)
-# height = pn.widgets.IntSlider(name="Height", start=200, end=2500, step=100, value=800)
+width = pn.widgets.IntSlider(name="Width", start=250, end=2000, step=250, value=400)
+height = pn.widgets.IntSlider(name="Height", start=200, end=2500, step=100, value=300)
 
 
 # this decorator tells the function when to rerun 
@@ -65,13 +65,13 @@ def update_date_range(fund_name):
 # CALLBACK FUNCTIONS
 
 # time slider 
-def get_plotly(fund_name, timeseries_filter, date_range_slider):
+def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height):
     '''given fundname, value of itnerest (e.g. open,close prices), 
     returns a time series plot for one or more etf funds '''
     # global filtered_local 
     filtered_local = api.get_filtered_data(fund_name, timeseries_filter, date_range_slider)
     # plotting time series 
-    fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter)
+    fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter, width, height)
 
     # fig = go.Figure()
 
@@ -161,12 +161,14 @@ def get_total_volume_plot(fund_name, date_range_slider):
 
 
 # time_slider = pn.bind(update_date_range, fund_name)
-plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider)
+plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, width, height)
 trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value)
 total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.param.value)
+
 # maybe add average volume traded on the side of the volume plot (similar look to the trend indicators next to the time series plot)
 # also make the width and height of the cards adjustable
 # and have consistent color coding across all plots 
+# strech the bars horizontally below the time series plot 
 
 
 
@@ -181,14 +183,14 @@ plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable))
 
 card_width = 320
 
-search_card = pn.Card(
-    pn.Column(fund_name, timeseries_filter, date_range_slider),
-    title="Search",
-    width=card_width,
-    height=300,
-    collapsed=False
-    # css_classes=['card-padding']
-)
+# search_card = pn.Card(
+#     pn.Column(fund_name, timeseries_filter, date_range_slider),
+#     title="Search",
+#     width=card_width,
+#     height=100,
+#     collapsed=False
+#     # css_classes=['card-padding']
+# )
 
 
 # plot_card = pn.Card(
@@ -197,17 +199,42 @@ search_card = pn.Card(
 #         height
 #     ),
 
-#     title="Plot", width=card_width, collapsed=True
+#     title="Plotting Dimensions", width=card_width, collapsed=True
 # )
 
+# stacked_cards = pn.Column(
+#     search_card,
+#     plot_card,
+#     sizing_mode='stretch_width'  
+# )
+search_card = pn.Card(
+    pn.Column(fund_name, timeseries_filter, date_range_slider),
+    title="Search",
+    width=card_width,
+    sizing_mode='stretch_width',  # Expands to the width of the container
+    collapsed=False
+)
+
+plot_card = pn.Card(
+    pn.Column(width, height),
+    title="Plotting Dimensions",
+    width=card_width,
+    sizing_mode='stretch_width',  # Expands to the width of the container
+    collapsed=True
+)
+
+stacked_cards = pn.Column(
+    search_card,
+    plot_card,
+    sizing_mode='stretch_width'
+)
 
 # LAYOUT
 
 layout = pn.template.FastListTemplate(
     title="ETF Explorer",
     sidebar=[
-        search_card
-        # plot_card
+        stacked_cards
     ],
     theme= 'dark',
     theme_toggle=False,
