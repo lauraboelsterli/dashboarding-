@@ -9,6 +9,7 @@ import altair as alt
 import plotly.graph_objects as go
 from matplotlib.figure import Figure
 import hvplot.pandas
+import time_series as ts
 
 # Loads javascript dependencies and configures Panel (required)
 pn.extension()
@@ -65,7 +66,6 @@ def get_volume(fund_name, date_range_slider):
     '''volume returned for each day in the time range'''
     # global local
     df = api.volume(fund_name, date_range_slider)  # calling the api
-    # print(local)
     # table = pn.widgets.Tabulator(df, selectable=False)
     table = pn.pane.DataFrame(df, width=500, height=300)
     return table
@@ -74,50 +74,45 @@ def get_volume(fund_name, date_range_slider):
 
 # time slider 
 def get_plotly(fund_name, timeseries_filter, date_range_slider):
-    # add in time range after
-    # global local 
-    local = api.extract_local_network(fund_name, timeseries_filter)
-    start_date, end_date = date_range_slider
-    start_date = pd.to_datetime(start_date)
-    end_date = pd.to_datetime(end_date)
-    # plot only the date for the given dates
-    filtered_local = local[(local['price_date'] >= start_date) & (local['price_date'] <= end_date)]
+    # global filtered_local 
+    filtered_local = api.get_filtered_data(fund_name, timeseries_filter, date_range_slider)
     # plotting time series 
-    fig = go.Figure()
+    fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter)
 
-    for etf in fund_name:
-        etf_data = filtered_local[filtered_local['fund_symbol'] == etf]  # filter data for each ETF
-        fig.add_trace(go.Scatter(x=etf_data['price_date'], y=etf_data[timeseries_filter],
-            mode='lines', name=etf, hoverinfo='x+y'))
+    # fig = go.Figure()
 
-    # Customize the layout with titles and axis labels
-    fig.update_layout(
-        title="ETF Price Tracker",
-        xaxis_title="Date",
-        yaxis_title=timeseries_filter,
-        legend_title="ETF",
-        hovermode="x unified"  # Shows the hover info for all traces at the same x-position
-    )
+    # for etf in fund_name:
+    #     etf_data = filtered_local[filtered_local['fund_symbol'] == etf]  # filter data for each ETF
+    #     fig.add_trace(go.Scatter(x=etf_data['price_date'], y=etf_data[timeseries_filter],
+    #         mode='lines', name=etf, hoverinfo='x+y'))
+
+    # # Customize the layout with titles and axis labels
+    # fig.update_layout(
+    #     title="ETF Price Tracker",
+    #     xaxis_title="Date",
+    #     yaxis_title=timeseries_filter,
+    #     legend_title="ETF",
+    #     hovermode="x unified"  # Shows the hover info for all traces at the same x-position
+    # )
 
     return fig
 
 
-
 def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
-    # found on trend holoviz web 
-    start_date, end_date = date_range_slider
-    trends = []  # Collect each Trend indicator here
+    # collecting all Trend indicators
+    trends = []  
     
+    # Iterate over each fund symbol in the list
     for symbol in fund_name:
-        # Get the data for each selected ETF
-        local = api.extract_local_network([symbol], timeseries_filter)
-        start_date, end_date = date_range_slider
-        start_date = pd.to_datetime(start_date)
-        end_date = pd.to_datetime(end_date)
-        # Filter the data based on date range
-        df = local[(local['price_date'] >= start_date) & (local['price_date'] <= end_date)]
-        
+        # Use the API function to fetch and filter the data
+        df = api.get_filtered_data([symbol], timeseries_filter, date_range_slider)
+        # print(df)
+
         # Store x and y data in a dictionary format for the trend
+        # autmatically computed: y value (chosen value of itnerest) most recent value
+        # percentage change is computed by first value (from chosen start date) 
+        # and last value (from chosen end date) 
+        # Prepare data for the Trend indicator
         data = {'x': df['price_date'].values, 'y': df[timeseries_filter].values}
         
         # Create the Trend indicator for the ETF
@@ -126,7 +121,6 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
             data=data,
             plot_x='x',
             plot_y='y',
-            # way to conenct eh color from graph to the color in the trend widget????
             plot_color='#428bca',
             plot_type='line',
             pos_color='#5cb85c',
@@ -142,17 +136,12 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
     return pn.Column(*trends)
 
 
+
 def get_total_volume_plot(fund_name, date_range_slider):
-    start_date, end_date = date_range_slider
-    local = api.extract_local_network(fund_name, 'volume')
-    start_date, end_date = pd.to_datetime(start_date), pd.to_datetime(end_date)
-    
-    # Filter data
-    df = local[(local['price_date'] >= start_date) & (local['price_date'] <= end_date)]
-    
+    df = api.get_filtered_data(fund_name, 'volume', date_range_slider)
+
     # Calculate total volume per ETF
     total_volumes = df.groupby('fund_symbol')['volume'].sum().reset_index()
-    
     # Plot total volume
     fig = go.Figure()
     fig.add_trace(go.Bar(

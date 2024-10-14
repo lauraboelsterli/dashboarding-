@@ -83,6 +83,19 @@ class etf_API:
 
         return fund_df
     
+    def get_filtered_data(self, fund_name, timeseries_filter, date_range_slider):
+        """Fetch and filter data for the specified funds and date range"""
+        # Extract the data for the specified funds and columns
+        local = self.extract_local_network(fund_name, timeseries_filter)
+        # Convert the date range to datetime format
+        start_date, end_date = date_range_slider
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
+        # Filter the data based on the date range
+        df = local[(local['price_date'] >= start_date) & (local['price_date'] <= end_date)]
+        
+        return df
+    
     def volume(self, fund_name, time_range):
         start_date, end_date = time_range
         start_date = pd.to_datetime(start_date)
