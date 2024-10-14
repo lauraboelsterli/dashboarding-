@@ -37,8 +37,8 @@ ts_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value
 ts_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=400)
 trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=50, value=300)
 trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=50, value=100)
-vol_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value=1000)
-vol_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=300)
+# vol_width = pn.widgets.IntSlider(name="Width", start=200, end=400, step=50, value=300)
+# vol_height = pn.widgets.IntSlider(name="Height", start=200, end=400, step=50, value=300)
 
 # this decorator tells the function when to rerun 
 @pn.depends(fund_name.param.value, watch=True)
@@ -160,6 +160,56 @@ def get_total_volume_plot(fund_name, date_range_slider, width=600, height=400):
     
     return fig
 
+def get_total_volume_indicator(fund_name, date_range_slider, width=200, height=50):
+    '''Create a summary indicator for total volume over the selected time range for each ETF with numeric values and suffixes in the name.'''
+    df = api.get_filtered_data(fund_name, 'volume', date_range_slider)
+
+    # Calculate total volume per ETF
+    total_volumes = df.groupby('fund_symbol')['volume'].sum()
+    
+    # List to hold each volume indicator
+    indicators = []
+    
+    for symbol, volume in total_volumes.items():
+        # Determine suffix based on the value's magnitude
+        if volume >= 1_000_000_000:
+            display_value = volume / 1_000_000_000
+            suffix = 'Billions'
+        elif volume >= 1_000_000:
+            display_value = volume / 1_000_000
+            suffix = 'Millions'
+        elif volume >= 1_000:
+            display_value = volume / 1_000
+            suffix = 'Thousands'
+        else:
+            display_value = volume
+            suffix = ''
+
+        # Create a Number indicator, using numeric value and adding the suffix in the name
+        indicator = pn.indicators.Number(
+            name=f'Total Volume for {symbol} ({suffix})',
+            value=display_value,  # This remains a numeric value
+            format='{value:.1f}',  # Use formatting for one decimal place
+            sizing_mode='fixed',
+            width=width,
+            height=height
+        )
+        indicators.append(indicator)
+            # Arrange indicators in a Row and make it horizontally scrollable
+    scrollable_row = pn.Column(
+        pn.Row(*indicators, sizing_mode='stretch_width'),
+        scroll=True,
+        width=1000 # Fixed width; adjust based on how much space you want to display
+        # height=height + 20  # Add some padding to height if needed
+    )
+
+    return scrollable_row
+
+    # return pn.Row(*indicators)
+
+
+
+
 
 
 # CALLBACK BINDINGS (Connecting widgets to callback functions)
@@ -168,7 +218,11 @@ def get_total_volume_plot(fund_name, date_range_slider, width=600, height=400):
 # time_slider = pn.bind(update_date_range, fund_name)
 plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height)
 trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value, trend_width, trend_height)
-total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.param.value, vol_width, vol_height)
+# total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.param.value, vol_width, vol_height)
+
+
+total_volume_plot = pn.bind(get_total_volume_indicator, fund_name, date_range_slider.param.value, width=300, height=300)
+# total_volume_plot = pn.bind(get_total_volume_indicator, fund_name, date_range_slider.param.value)
 
 # maybe add average volume traded on the side of the volume plot (similar look to the trend indicators next to the time series plot)
 # also make the width and height of the cards adjustable
@@ -180,10 +234,12 @@ total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.
 
 # DASHBOARD WIDGET CONTAINERS ("CARDS")
 trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=400)  # Set height limit
+
 volume_plotting = pn.Column(total_volume_plot, height=400)
-volume_plot = pn.Row(total_volume_plot)
+
+volume_plot = pn.Row(total_volume_plot, scroll=True)
 # Combine into a single layout line
-plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable), volume_plot)
+plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable ), volume_plot)
 
 
 
@@ -213,19 +269,19 @@ trend_card = pn.Card(
     collapsed=True
 )
 
-volume_card = pn.Card(
-    pn.Column(vol_width, vol_height),
-    title="Total Volume Dimensions",
-    width=card_width,
-    sizing_mode='stretch_width',  
-    collapsed=True
-)
+# volume_card = pn.Card(
+#     pn.Column(vol_width, vol_height),
+#     title="Total Volume Dimensions",
+#     width=card_width,
+#     sizing_mode='stretch_width',  
+#     collapsed=True
+# )
 
 stacked_cards = pn.Column(
     search_card,
     plot_card,
     trend_card,
-    volume_card,
+    # volume_card,
     sizing_mode='stretch_width'
     )
 
