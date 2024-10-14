@@ -1,6 +1,14 @@
 import plotly.graph_objects as go
 
 def make_time_series(fund_name, filtered_local, timeseries_filter, width=800, height=400):
+    '''-laura and nick
+    params: fund_name (name of fund(s)(list or str)), 
+    filtered_local (df) of values from only the selected time range,
+    timeseries_filter (market value of interest (str)), width (int), height (int)
+    does: plots a time series with given df for one or more etfs of given market price value
+    of interest (like for example, closing price)
+    returns: time series plotly figure 
+    '''
     fig = go.Figure()
 
     for etf in fund_name:
