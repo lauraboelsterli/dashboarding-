@@ -9,9 +9,7 @@ import pandas as pd
 from collections import Counter
 
 
-
 class etf_API:
-
     fund_df = None  # dataframe
 
     def load_df(self, filename):
@@ -19,40 +17,6 @@ class etf_API:
         self.fund_df = pd.read_csv(filename)
         # make sure its in datetime format for usability 
         self.fund_df['price_date'] = pd.to_datetime(self.fund_df['price_date'])
-
-
-        # print(self.fund_df)
-
-    # def get_df_ts(self, df, window_size):
-    #     # df['date'] = pd.to_datetime(df.date)
-    #     # Select only numeric columns for the rolling mean
-    #     numeric_df = df.select_dtypes(include='number')
-    #     # Apply the rolling mean on numeric columns only
-    #     rolling_mean_df = numeric_df.rolling(window=window_size).mean()
-    #     # Adding back the non-numeric column so we have the fund name wiht the rolling mean
-    #     rolling_mean_df['fund_symbol'] = df['fund_symbol']
-    #     # could go back and put the date indexing her einstea dof in the load_df function
-    #     return rolling_mean_df.reset_index()
-    
-
-# work on this one if anything 
-    # def get_df_ts(self, fund_name, time_series_filter, window):
-    #     # df['date'] = pd.to_datetime(df.date)
-    #     # set date as index for better pandas time series functionality 
-    #     self.fund_df.set_index('price_date', inplace=True)
-    #     # Select only numeric columns for the rolling mean
-    #     numeric_df = df.select_dtypes(include='number')
-    #     # Apply the rolling mean on numeric columns only
-    #     rolling_mean_df = numeric_df.rolling(window=window_size).mean()
-    #     # Adding back the non-numeric column so we have the fund name wiht the rolling mean
-    #     rolling_mean_df['fund_symbol'] = df['fund_symbol']
-    #     # could go back and put the date indexing her einstea dof in the load_df function
-        
-    #     return rolling_mean_df.reset_index()
-
-
-        
-
 
     def get_funds(self):
         '''laura'''
@@ -62,65 +26,49 @@ class etf_API:
         # print(funds, 'unique')
         return sorted(funds)
 
-
     def get_options(self):
         '''laura'''
         df_columns = self.fund_df.columns.tolist()
-        df_columns = df_columns[1:]
+        # to remove price date, volume, and fund symbol from time series plotting
+        df_columns = df_columns[2:-1]
+
         return df_columns
 
     def extract_local_network(self, funds, value_of_interest):
         '''laura'''
-        # filter based on choices 
-        # fund_df = self.fund_df[self.fund_df['fund_symbol']== fund]
-        # fund_df = self.fund_df[[value_of_interest]]
-        # fund_df['price_date']= self.fund_df['price_date']
-
-        # fund_df = self.fund_df[self.fund_df['fund_symbol'] == fund].copy()
-        # fund_df = self.fund_df[[value_of_interest]]
-        # fund_df['price_date'] = self.fund_df['price_date'].values
-        fund_df = self.fund_df.loc[self.fund_df['fund_symbol'].isin(funds), ['fund_symbol', 'price_date', value_of_interest]].copy()
+        # filter based on choices
+        fund_df = self.fund_df.loc[
+            self.fund_df['fund_symbol'].isin(funds), ['fund_symbol', 'price_date', value_of_interest]].copy()
 
         return fund_df
-    
-    def volume(self, fund_name, time_range):
-        start_date, end_date = time_range
+
+    def get_filtered_data(self, fund_name, timeseries_filter, date_range_slider):
+        """Fetch and filter data for the specified funds and date range"""
+        # Extract the data for the specified funds and columns
+        local = self.extract_local_network(fund_name, timeseries_filter)
+        # Convert the date range to datetime format
+        start_date, end_date = date_range_slider
         start_date = pd.to_datetime(start_date)
         end_date = pd.to_datetime(end_date)
-        volume_df = self.fund_df.loc[
-        (self.fund_df['fund_symbol'].isin(fund_name)) &
-        (self.fund_df['price_date'].between(start_date, end_date)),
-        ['fund_symbol', 'price_date', 'volume']
-        ].copy()
-        return volume_df
+        # Filter the data based on the date range
+        df = local[(local['price_date'] >= start_date) & (local['price_date'] <= end_date)]
 
+        return df
 
 
 def main():
-
     stockapi = etf_API()
     stockapi.load_df('data/ETFprices.csv')
-    df= stockapi.fund_df
+    df = stockapi.fund_df
     # print(df)
     funds = stockapi.get_funds()
-
-    # get_df_ts(self, df, funds, window_size=5)
-    # timeseriesdf= stockapi.get_df_ts(df, window_size=5)
-    # print(timeseriesdf)
-
+    # print(funds)
 
     # local = stockapi.extract_local_network(["AAA"], 'open')
-
     # print(local)
-    # funds = get_funds(self.fund_df)
-    
-    # print(funds)
+
     options = stockapi.get_options()
-    # print(stockapi.volume(['AAA'], ((1993, 1, 28), (2021, 11, 29))))
     # print(options)
-
-
-
 
 
 if __name__ == '__main__':
