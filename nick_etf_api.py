@@ -5,12 +5,12 @@ Description: The primary API for interacting with the gad dataset.
 """
 
 import pandas as pd
-import sankey as sk
+# import sankey as sk
 from collections import Counter
 
 
 
-class stock_API:
+class etf_API:
 
     fund_df = None  # dataframe
 
@@ -19,8 +19,6 @@ class stock_API:
         self.fund_df = pd.read_csv(filename)
         # make sure its in datetime format for usability 
         self.fund_df['price_date'] = pd.to_datetime(self.fund_df['price_date'])
-
-
 
 
         # print(self.fund_df)
@@ -58,8 +56,7 @@ class stock_API:
 
     def get_funds(self):
         '''laura'''
-        """ Fetch the list of unique phenotypes (diseases)
-        with at least one positive association in the gad dataset """
+        """ Fetch the list of unique ETFs within the dataset"""
 
         funds = self.fund_df['fund_symbol'].unique()
         # print(funds, 'unique')
@@ -70,10 +67,9 @@ class stock_API:
         '''laura'''
         df_columns = self.fund_df.columns.tolist()
         df_columns = df_columns[1:]
-        print(df_columns)
         return df_columns
 
-    def extract_local_network(self, fund, value_of_interest):
+    def extract_local_network(self, funds, value_of_interest):
         '''laura'''
         # filter based on choices 
         # fund_df = self.fund_df[self.fund_df['fund_symbol']== fund]
@@ -83,15 +79,26 @@ class stock_API:
         # fund_df = self.fund_df[self.fund_df['fund_symbol'] == fund].copy()
         # fund_df = self.fund_df[[value_of_interest]]
         # fund_df['price_date'] = self.fund_df['price_date'].values
-        fund_df = self.fund_df.loc[self.fund_df['fund_symbol'] == fund, ['price_date', value_of_interest]].copy()
-
+        fund_df = self.fund_df.loc[self.fund_df['fund_symbol'].isin(funds), ['fund_symbol', 'price_date', value_of_interest]].copy()
 
         return fund_df
+    
+    def volume(self, fund_name, time_range):
+        start_date, end_date = time_range
+        start_date = pd.to_datetime(start_date)
+        end_date = pd.to_datetime(end_date)
+        volume_df = self.fund_df.loc[
+        (self.fund_df['fund_symbol'].isin(fund_name)) &
+        (self.fund_df['price_date'].between(start_date, end_date)),
+        ['fund_symbol', 'price_date', 'volume']
+        ].copy()
+        return volume_df
+
 
 
 def main():
 
-    stockapi = stock_API()
+    stockapi = etf_API()
     stockapi.load_df('data/ETFprices.csv')
     df= stockapi.fund_df
     # print(df)
@@ -102,14 +109,14 @@ def main():
     # print(timeseriesdf)
 
 
-    local = stockapi.extract_local_network("AAA", 'open')
+    # local = stockapi.extract_local_network(["AAA"], 'open')
 
-    print(local)
+    # print(local)
     # funds = get_funds(self.fund_df)
     
     # print(funds)
     options = stockapi.get_options()
-
+    # print(stockapi.volume(['AAA'], ((1993, 1, 28), (2021, 11, 29))))
     # print(options)
 
 
