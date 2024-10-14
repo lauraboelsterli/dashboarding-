@@ -41,6 +41,9 @@ height = pn.widgets.IntSlider(name="Height", start=200, end=2500, step=100, valu
 # this decorator tells the function when to rerun 
 @pn.depends(fund_name.param.value, watch=True)
 def update_date_range(fund_name):
+    '''updates the time range slider depending on the 
+    minimum date and maximum date funds for each given 
+    fund seleciton'''
     # selected_funds = event.new
     min_date = api.fund_df[api.fund_df['fund_symbol'].isin(fund_name)]['price_date'].min()
     max_date = api.fund_df[api.fund_df['fund_symbol'].isin(fund_name)]['price_date'].max()
@@ -74,6 +77,8 @@ def get_volume(fund_name, date_range_slider):
 
 # time slider 
 def get_plotly(fund_name, timeseries_filter, date_range_slider):
+    '''given fundname, value of itnerest (e.g. open,close prices), 
+    returns a time series plot for one or more etf funds '''
     # global filtered_local 
     filtered_local = api.get_filtered_data(fund_name, timeseries_filter, date_range_slider)
     # plotting time series 
@@ -99,6 +104,10 @@ def get_plotly(fund_name, timeseries_filter, date_range_slider):
 
 
 def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
+    '''get trends for each fund automatically calculated (y value (chosen value of interest) 
+    most recent value percentage change is computed by first value (from chosen start date) 
+    and last value (from chosen end date)) measures done by indicators widget 
+    and then each fund with its metrics gets returnes as column'''
     # collecting all Trend indicators
     trends = []  
     
@@ -108,11 +117,7 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
         df = api.get_filtered_data([symbol], timeseries_filter, date_range_slider)
         # print(df)
 
-        # Store x and y data in a dictionary format for the trend
-        # autmatically computed: y value (chosen value of itnerest) most recent value
-        # percentage change is computed by first value (from chosen start date) 
-        # and last value (from chosen end date) 
-        # Prepare data for the Trend indicator
+        # prepping data for the trend indicator in dct format
         data = {'x': df['price_date'].values, 'y': df[timeseries_filter].values}
         
         # Create the Trend indicator for the ETF
@@ -129,15 +134,16 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider):
             height=200
         )
         
-        # Append each trend to the list
+        # append each trend to the list
         trends.append(trend)
     
-    # Return a Column containing all trend indicators
+    # returning a column containing all trend indicators
     return pn.Column(*trends)
 
 
 
 def get_total_volume_plot(fund_name, date_range_slider):
+    '''make bar plots for total volume for each given fund'''
     df = api.get_filtered_data(fund_name, 'volume', date_range_slider)
 
     # Calculate total volume per ETF
@@ -188,6 +194,7 @@ total_volume_plot = pn.bind(get_total_volume_plot, fund_name, date_range_slider.
 trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=400)  # Set height limit
 # Combine into a single layout line
 plot_and_trend_and_volume = pn.Column(pn.Row(plot, trend_indicators_scrollable), total_volume_plot)
+# plot_and_trend_and_volume = pn.Column(pn.Row(plot, trend_indicators), total_volume_plot)
 
 
 
