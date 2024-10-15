@@ -57,6 +57,8 @@ def update_date_range(fund_name):
     date_range_slider.value = (min_date, max_date)
 
 
+
+
 # CALLBACK FUNCTIONS
 
 def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height):
@@ -106,7 +108,6 @@ def get_total_volume_indicator(fund_name, date_range_slider, width=300, height=3
 def generate_color_palette(n):
     '''nick'''
     return sns.color_palette("husl", n).as_hex()
-
 
 
 
