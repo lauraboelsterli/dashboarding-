@@ -1,12 +1,9 @@
 """"
-File: gadapi.py
+File: dash_api.py
 
-Description: The primary API for interacting with the gad dataset.
+Description: The primary API for interacting with the etf dataset.
 """
-
 import pandas as pd
-from collections import Counter
-import seaborn as sns 
 
 class etf_API:
 
