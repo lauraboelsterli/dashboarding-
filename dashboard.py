@@ -190,25 +190,23 @@ search_card = pn.Card(
     collapsed=False
 )
 
-plot_card = pn.Card(
-    pn.Column(ts_width, ts_height),
-    title="ETF Price Tracker Dimensions",
-    width=card_width,
-    sizing_mode='stretch_width',  
-    collapsed=True
-)
 
-trend_card = pn.Card(
-    pn.Column(trend_width, trend_height),
-    title="ETF Price Trend Dimensions",
+plotandtrend_card = pn.Card(
+    pn.Column(
+        pn.pane.Markdown("### ETF Price Tracker Time Series"),  # Title for Price Trend Options
+        pn.Column(ts_width, ts_height),
+        pn.pane.Markdown("### ETF Price Trend Indicator"),  # Title for Volatility Options
+        pn.Column(trend_width, trend_height)
+    ),
+    title="ETF Price Trend Tab Dimensions",
     width=card_width,
-    sizing_mode='stretch_width',  
-    collapsed=True
+    sizing_mode='stretch_width',
+    collapsed=True 
 )
 
 volatility_card = pn.Card(
     pn.Column(volatility_width, volatility_height),
-    title="ETF Volatility Dimensions",
+    title="ETF Volatility Tab Dimensions",
     width=card_width,
     sizing_mode='stretch_width',  
     collapsed=True
@@ -217,8 +215,7 @@ volatility_card = pn.Card(
 stacked_cards = pn.Column(
     search_card,
     options_card,  
-    plot_card,
-    trend_card,
+    plotandtrend_card,
     volatility_card,
     sizing_mode='stretch_width'
 )
@@ -232,7 +229,6 @@ layout = pn.template.FastListTemplate(
     theme= 'dark',
     theme_toggle=False,
     main=[
-        # plot_and_trend
                 pn.Tabs(
         ("Price Trends", plot_and_trend),
         ("Volatility Analysis", volatility_chart)
