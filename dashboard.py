@@ -1,9 +1,12 @@
 import panel as pn
-from laura_etf_api import etf_API
+from dash_api import etf_API
 import datetime as dt
 import pandas as pd
 import plotly.graph_objects as go
 import time_series as ts
+import trend_indicator as trend_ind
+import volume_indicator as vol_ind
+import seaborn as sns
 
 # Loads javascript dependencies and configures Panel (required)
 pn.extension()
@@ -14,8 +17,6 @@ api.load_df('data/ETFprices.csv')
 
 # WIDGET DECLARATIONS
 # Search Widgets
-# fund_name = pn.widgets.MultiSelect(name="Select All ETFs of Interest", options=api.get_funds(), value=['SPY', 'QQQ', 'GLD'], 
-#     height=250)
 fund_name = pn.widgets.MultiChoice(name="Select All ETFs of Interest", options=api.get_funds(),
                                    value=['SPY', 'QQQ', 'GLD'],
                                    height=250)
@@ -34,8 +35,8 @@ trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=50, v
 
 
 
-# this decorator tells the function when to rerun
-# aka everytime fund_name chosen from the multiselect
+# decorator tells the function when to rerun, everytime
+# a fund_name is chosen from the multiselect
 @pn.depends(fund_name.param.value, watch=True)
 def update_date_range(fund_name):
     '''-laura 
@@ -66,8 +67,10 @@ def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height):
     '''
     # global filtered_local 
     filtered_local = api.get_filtered_data(fund_name, timeseries_filter, date_range_slider)
+    # Generate a color palette for the selected ETFs
+    colors = generate_color_palette(len(fund_name))
     # plotting time series 
-    fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter, width, height)
+    fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter, colors, width, height)
 
     return fig
 
@@ -79,38 +82,10 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider, width=2
     does: get trends for each fund automatically calculated (y value (chosen value of interest) 
     most recent value percentage change is computed by first value (from chosen start date) 
     and last value (from chosen end date)) measures done by indicators widget 
-    and then each fund with its metrics gets returns as column
     returns: trend indicator widgets '''
-    # collecting all trend indicators
-    trends = []  
-    
-    # Iterate over each fund symbol in the list
-    for symbol in fund_name:
-        # fetching and filter the data
-        df = api.get_filtered_data([symbol], timeseries_filter, date_range_slider)
-        # print(df)
 
-        # prepping data for the trend indicator in dct format
-        data = {'x': df['price_date'].values, 'y': df[timeseries_filter].values}
-        
-        # creating the Trend indicator for the ETF
-        trend = pn.indicators.Trend(
-            name=f'{symbol} Price Trend',
-            data=data,
-            plot_x='x',
-            plot_y='y',
-            plot_color='#428bca',
-            plot_type='line',
-            pos_color='#5cb85c',
-            neg_color='#d9534f',
-            width=width,
-            height=height
-        )
-        
-        # append each trend to the list
-        trends.append(trend)
-    
-    # returning a column containing all trend indicators
+    colors = generate_color_palette(len(fund_name))
+    trends = trend_ind.make_trendindicators(fund_name, timeseries_filter, date_range_slider, colors, width, height)
     return pn.Column(*trends)
 
 
@@ -123,28 +98,29 @@ def get_total_volume_plot(fund_name, date_range_slider, width=600, height=400):
     returns: figure of bar plot made on plotly 
     '''
     df = api.get_filtered_data(fund_name, 'volume', date_range_slider)
-
-    # calculate total volume per ETF
     total_volumes = df.groupby('fund_symbol')['volume'].sum().reset_index()
-    # plotting the total volume:
+    colors = generate_color_palette(len(fund_name))
+
     fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=total_volumes['fund_symbol'], 
-        y=total_volumes['volume'],
-        name="Total Volume",
-        opacity=1
-    ))
-    
+    for i, etf in enumerate(total_volumes['fund_symbol']):
+        fig.add_trace(go.Bar(
+            x=[etf],
+            y=[total_volumes[total_volumes['fund_symbol'] == etf]['volume'].values[0]],
+            name=etf,
+            marker_color=colors[i]
+        ))
+
     fig.update_layout(
         title="Total Volume Traded Over Selected Date Range",
         xaxis_title="ETF",
         yaxis_title="Total Volume",
         barmode='group',
-        width = width,
-        height=height
+        plot_bgcolor="#1C1C1C",
+        paper_bgcolor="#1C1C1C",
+        font=dict(color="#F0F0F0")
     )
-    
     return fig
+
 
 def get_total_volume_indicator(fund_name, date_range_slider, width=300, height=300):
     '''-laura 
@@ -155,41 +131,12 @@ def get_total_volume_indicator(fund_name, date_range_slider, width=300, height=3
     is in billions, millions, etc., to reduce clutter and enhance readability
     returns: returns volume indicator widgets 
     '''
-    df = api.get_filtered_data(fund_name, 'volume', date_range_slider)
-
-    # Calculate total volume per ETF
-    total_volumes = df.groupby('fund_symbol')['volume'].sum()
-    
-    # List to hold each volume indicator
-    indicators = []
-    
-    for symbol, volume in total_volumes.items():
-        # Determine suffix based on the value's magnitude
-        if volume >= 1_000_000_000:
-            display_value = volume / 1_000_000_000
-            suffix = 'Billions'
-        elif volume >= 1_000_000:
-            display_value = volume / 1_000_000
-            suffix = 'Millions'
-        elif volume >= 1_000:
-            display_value = volume / 1_000
-            suffix = 'Thousands'
-        else:
-            display_value = volume
-            suffix = ''
-
-        # Create a Number indicator, using numeric value and adding the suffix in the name
-        indicator = pn.indicators.Number(
-            name=f'Total Volume for {symbol} ({suffix})',
-            value=display_value,  # This remains a numeric value
-            format='{value:.1f}',  # Use formatting for one decimal place
-            sizing_mode='fixed',
-            width=width,
-            height=height
-        )
-        indicators.append(indicator)
-
+    indicators = vol_ind.make_volindicator(fund_name, date_range_slider, width, height)
     return pn.Row(*indicators)
+
+def generate_color_palette(n):
+    '''nick'''
+    return sns.color_palette("husl", n).as_hex()
 
 
 
@@ -255,7 +202,8 @@ layout = pn.template.FastListTemplate(
     main=[
         plot_and_trend
     ],
-    header_background='#a93226'
+    header_background='#333333',
+    accent_base_color='#1C1C1C'
 
 ).servable()
 

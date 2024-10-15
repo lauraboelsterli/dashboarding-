@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 
-def make_time_series(fund_name, filtered_local, timeseries_filter, width=800, height=400):
-    '''-laura and nick
+def make_time_series(fund_name, filtered_local, timeseries_filter,colors, width=800, height=400):
+    '''-laura 
     params: fund_name (name of fund(s)(list or str)), 
     filtered_local (df) of values from only the selected time range,
     timeseries_filter (market value of interest (str)), width (int), height (int)
@@ -9,22 +9,43 @@ def make_time_series(fund_name, filtered_local, timeseries_filter, width=800, he
     of interest (like for example, closing price)
     returns: time series plotly figure 
     '''
+    # fig = go.Figure()
+
+    # for etf in fund_name:
+    #     etf_data = filtered_local[filtered_local['fund_symbol'] == etf]  # filter data for each ETF
+    #     fig.add_trace(go.Scatter(x=etf_data['price_date'], y=etf_data[timeseries_filter],
+    #         mode='lines', name=etf, hoverinfo='x+y'))
+
+    # # Customize the layout with titles and axis labels
+    # fig.update_layout(
+    #     title="ETF Price Tracker",
+    #     xaxis_title="Date",
+    #     yaxis_title=timeseries_filter,
+    #     legend_title="ETF",
+    #     hovermode="x unified",  # Shows the hover info for all traces at the same x-position
+    #     width=width,
+    #     height=height
+    # )
     fig = go.Figure()
+    for i, etf in enumerate(fund_name):
+        etf_data = filtered_local[filtered_local['fund_symbol'] == etf]
+        fig.add_trace(go.Scatter(
+            x=etf_data['price_date'],
+            y=etf_data[timeseries_filter],
+            mode='lines',
+            name=etf,
+            line=dict(color=colors[i])
+        ))
 
-    for etf in fund_name:
-        etf_data = filtered_local[filtered_local['fund_symbol'] == etf]  # filter data for each ETF
-        fig.add_trace(go.Scatter(x=etf_data['price_date'], y=etf_data[timeseries_filter],
-            mode='lines', name=etf, hoverinfo='x+y'))
-
-    # Customize the layout with titles and axis labels
     fig.update_layout(
         title="ETF Price Tracker",
         xaxis_title="Date",
         yaxis_title=timeseries_filter,
         legend_title="ETF",
-        hovermode="x unified",  # Shows the hover info for all traces at the same x-position
-        width=width,
-        height=height
-    )
+        plot_bgcolor="#1C1C1C",
+         paper_bgcolor="#1C1C1C",
+         font=dict(color="#F0F0F0"),
+         hovermode="x unified"
+     )
 
     return fig
