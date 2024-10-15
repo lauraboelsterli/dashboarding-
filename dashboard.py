@@ -18,7 +18,7 @@ api = etf_API()
 # Search Widgets
 fund_name = pn.widgets.MultiChoice(name="Select All ETFs of Interest", options=api.get_funds(),
                                    value=['SPY', 'QQQ', 'GLD'],
-                                   height=250)
+                                   height=150)
 timeseries_filter = pn.widgets.Select(name="Market Price Data", options = api.get_options(), value='close')
 date_range_slider = pn.widgets.DateRangeSlider(
     name='Select a Date Range',
