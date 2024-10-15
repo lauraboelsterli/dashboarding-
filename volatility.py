@@ -5,7 +5,7 @@ def make_volatility_chart(fund_name, filtered_local, timeseries_filter, colors, 
     '''-laura 
     params:fund_name (str or list), timeseries_filter (str), date_range_slider (tuple), width (int), height (int), 
     ma_window (int) (this is the selected rolling window), 
-    volatility_display_option (str) (chosen by suer (to show raw data, rolling sd ot both))
+    volatility_display_option (str) (chosen by user (to show raw data, rolling sd ot both))
     does: Calculates and plots volatility as either raw daily percentage change, a rolling standard deviation, or shows both.
     returns:
     fig: Plotly figure object showing the volatility plot
