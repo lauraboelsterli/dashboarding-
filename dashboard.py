@@ -127,9 +127,10 @@ volume_indicators = pn.bind(get_total_volume_indicator, fund_name, date_range_sl
 
 # DASHBOARD WIDGET CONTAINERS ("CARDS")
 trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=400)  # Set height limit
-scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True,width=1000)
+scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True)
+# scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True,width=600)
 # volume_plot = pn.Row(total_volume_plot, scroll=True)
-volume_plot = pn.Row(scrollable_row, scroll=True)
+volume_plot = pn.Row(scrollable_row, scroll=True, width=1000, height = 200 )
 # Combine into a single layout line
 plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable ), volume_plot)
 
