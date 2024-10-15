@@ -1,5 +1,5 @@
 import panel as pn
-from laura_etf_api import etf_API
+from dashboarding.ignore.laura_etf_api import etf_API
 api = etf_API()
 
 def make_trendindicators(fund_name, timeseries_filter, date_range_slider, colors, width, height):

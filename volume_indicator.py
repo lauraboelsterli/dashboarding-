@@ -1,5 +1,5 @@
 import panel as pn
-from laura_etf_api import etf_API
+from dashboarding.ignore.laura_etf_api import etf_API
 api = etf_API()
 
 def make_volindicator(fund_name, date_range_slider, width, height):
