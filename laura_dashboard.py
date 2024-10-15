@@ -9,6 +9,8 @@ import datetime as dt
 import time_series as ts
 import trend_indicator as trend_ind
 import volume_indicator as vol_ind
+from volatility import make_volatility_chart
+
 import seaborn as sns
 
 # Loads javascript dependencies and configures Panel (required)
@@ -32,18 +34,22 @@ date_range_slider = pn.widgets.DateRangeSlider(
 )
 ts_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value=600)
 ts_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=400)
-trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=50, value=300)
-trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=50, value=100)
+trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=25, value=300)
+trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=25, value=125)
 display_option = pn.widgets.RadioButtonGroup(
     name='Display Options',
     options=['Raw Data', 'Moving Average', 'Both'],
     value='Raw Data',
     width=300
 )
-# ma_window = pn.widgets.IntSlider(name="Moving Average Window", start=1, end=50, step=1, value=20)
-ma_window = pn.widgets.IntSlider(name="Moving Average Window", start=1, end=100, step=5, value=20)
-
-
+# Widget for Volatility Display Options
+volatility_display_option = pn.widgets.RadioButtonGroup(
+    name='Volatility Display Options',
+    options=['Raw Data', 'Moving Standard Dev', 'Both'],
+    value='Moving Standard Deviation',
+    width=300
+)
+ma_window = pn.widgets.IntSlider(name="Rolling Window", start=1, end=365, step=5, value=80)
 
 
 
@@ -71,23 +77,6 @@ def update_date_range(fund_name):
 
 # CALLBACK FUNCTIONS
 
-# def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height):
-#     '''-laura
-#     params: fund_name (name of fund(s)(list or str)), timeseries_filter (market value of interest (str)), 
-#     date_range_slider (start and end date (tuple), width (int), height (int)
-#     does: given a fund name(s), a value of interest (e.g. open,close prices), and time range, a time series plot 
-#     is plotted on plotly 
-#     returns: a time series figure for one or more etf funds
-#     '''
-#     # global filtered_local 
-#     filtered_local = api.get_filtered_data(fund_name, timeseries_filter, date_range_slider)
-#     # Generate a color palette for the selected ETFs
-#     colors = generate_color_palette(len(fund_name))
-#     # plotting time series 
-#     fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter, colors, width, height)
-
-#     return fig
-
 def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height, ma_window, display_option):
     '''
     -laura
@@ -104,7 +93,6 @@ def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height, m
     fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter, colors, width, height, ma_window, display_option)
 
     return fig
-
 
 
 def get_trend_indicator(fund_name, timeseries_filter, date_range_slider, width=250, height=200):
@@ -133,6 +121,31 @@ def get_total_volume_indicator(fund_name, date_range_slider, width=300, height=3
     indicators = vol_ind.make_volindicator(fund_name, date_range_slider, width, height)
     return pn.Row(*indicators)
 
+
+def get_volatility_chart(fund_name, timeseries_filter, date_range_slider, ma_window, volatility_display_option, width=800, height=500 ):
+    '''
+    Plots volatility as either raw daily percentage changes, rolling volatility, or both.
+
+    Parameters:
+    - fund_name (str or list): The name(s) of the fund(s) to plot.
+    - timeseries_filter (str): The market price metric of interest (e.g., 'close', 'open').
+    - date_range_slider (tuple): Start and end dates from the date range slider widget.
+    - width (int): Width of the plot in pixels.
+    - height (int): Height of the plot in pixels.
+    - ma_window (int): Moving average window for calculating rolling volatility.
+    - volatility_display_option (str): Display choice for the volatility plot ('Raw Data', 'Rolling Window', or 'Both').
+
+    Returns:
+    - fig (plotly.graph_objs._figure.Figure): A Plotly figure object showing the volatility plot.
+    '''
+    filtered_local = api.get_filtered_data(fund_name, timeseries_filter, date_range_slider)
+    colors = generate_color_palette(len(fund_name))
+    fig = make_volatility_chart(fund_name, filtered_local, timeseries_filter, colors, ma_window, volatility_display_option, width, height)
+    return fig
+
+
+
+
 def generate_color_palette(n):
     '''nick'''
     return sns.color_palette("husl", n).as_hex()
@@ -140,6 +153,11 @@ def generate_color_palette(n):
 
 
 # CALLBACK BINDINGS (Connecting widgets to callback functions)
+# volatility_chart = pn.bind(get_volatility_chart, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height)
+volatility_chart = pn.bind(get_volatility_chart, fund_name, timeseries_filter, date_range_slider, ma_window, volatility_display_option)
+
+
+
 # plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height)
 plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height, ma_window, display_option)
 trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value, trend_width, trend_height)
@@ -148,15 +166,32 @@ volume_indicators = pn.bind(get_total_volume_indicator, fund_name, date_range_sl
 
 # DASHBOARD WIDGET CONTAINERS ("CARDS")
 trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=400)  # Set height limit
-scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True,width=1000)
+scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True)
+# scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True,width=600)
 # volume_plot = pn.Row(total_volume_plot, scroll=True)
-volume_plot = pn.Row(scrollable_row, scroll=True)
+volume_plot = pn.Row(scrollable_row, scroll=True, width=900, height = 200 )
 # Combine into a single layout line
 plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable ), volume_plot)
 
 
 
 card_width = 320
+
+# Consolidate options into a single card with titles for clarity
+options_card = pn.Card(
+    pn.Column(
+        pn.pane.Markdown("### Price Trend Display Options"),  # Title for Price Trend Options
+        display_option,
+        pn.pane.Markdown("### Volatility Analysis Display Options"),  # Title for Volatility Options
+        volatility_display_option,
+        pn.pane.Markdown("### Rolling Window"),  # Title for Moving Average
+        ma_window
+    ),
+    title="Rolling Window Graph Options",
+    width=card_width,
+    sizing_mode='stretch_width',
+    collapsed=True 
+)
 
 search_card = pn.Card(
     pn.Column(fund_name, timeseries_filter, date_range_slider),
@@ -166,17 +201,9 @@ search_card = pn.Card(
     collapsed=False
 )
 
-movingaverage_card = pn.Card(
-    pn.Column(display_option, ma_window),
-    title="Moving Average Option",
-    width=card_width,
-    sizing_mode='stretch_width',  
-    collapsed=False
-)
-
 plot_card = pn.Card(
     pn.Column(ts_width, ts_height),
-    title="Time Series Dimensions",
+    title="ETF Price Tracker Dimensions",
     width=card_width,
     sizing_mode='stretch_width',  
     collapsed=True
@@ -184,20 +211,20 @@ plot_card = pn.Card(
 
 trend_card = pn.Card(
     pn.Column(trend_width, trend_height),
-    title="Price Trend Dimensions",
+    title="ETF Price Trend Dimensions",
     width=card_width,
     sizing_mode='stretch_width',  
     collapsed=True
 )
 
+# Stack all cards including the consolidated options card
 stacked_cards = pn.Column(
     search_card,
-    movingaverage_card,
+    options_card,  # The new consolidated options card
     plot_card,
     trend_card,
     sizing_mode='stretch_width'
-    )
-
+)
 
 # LAYOUT
 layout = pn.template.FastListTemplate(
@@ -208,7 +235,11 @@ layout = pn.template.FastListTemplate(
     theme= 'dark',
     theme_toggle=False,
     main=[
-        plot_and_trend
+        # plot_and_trend
+                pn.Tabs(
+        ("Price Trends", plot_and_trend),
+        ("Volatility Analysis", volatility_chart)
+        )
     ],
     header_background='#333333',
     accent_base_color='#1C1C1C'

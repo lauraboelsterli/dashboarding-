@@ -51,7 +51,7 @@ def make_time_series(fund_name, filtered_local, timeseries_filter, colors, width
         hovermode="x unified",
         xaxis=dict(
             showgrid=True, 
-            gridcolor='rgba(255, 255, 255, 0.1)'  
+            gridcolor='rgba(255, 255, 255, 0.1)' 
         ),
         yaxis=dict(
             showgrid=True, 
@@ -60,5 +60,9 @@ def make_time_series(fund_name, filtered_local, timeseries_filter, colors, width
         width=width,
         height=height
     )
+
+    fig.update_xaxes(zeroline=False)
+    fig.update_yaxes(zeroline=False)
+
 
     return fig
