@@ -32,8 +32,8 @@ date_range_slider = pn.widgets.DateRangeSlider(
 )
 ts_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value=600)
 ts_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=400)
-trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=50, value=300)
-trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=50, value=100)
+trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=25, value=300)
+trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=25, value=125)
 display_option = pn.widgets.RadioButtonGroup(
     name='Display Options',
     options=['Raw Data', 'Moving Average', 'Both'],
@@ -119,6 +119,7 @@ def generate_color_palette(n):
 
 
 # CALLBACK BINDINGS (Connecting widgets to callback functions)
+
 # plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height)
 plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height, ma_window, display_option)
 trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value, trend_width, trend_height)
@@ -130,7 +131,7 @@ trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=40
 scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True)
 # scrollable_row = pn.Column(pn.Row(volume_indicators),scroll=True,width=600)
 # volume_plot = pn.Row(total_volume_plot, scroll=True)
-volume_plot = pn.Row(scrollable_row, scroll=True, width=1000, height = 200 )
+volume_plot = pn.Row(scrollable_row, scroll=True, width=900, height = 200 )
 # Combine into a single layout line
 plot_and_trend = pn.Column(pn.Row(plot, trend_indicators_scrollable ), volume_plot)
 
