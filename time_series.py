@@ -9,23 +9,6 @@ def make_time_series(fund_name, filtered_local, timeseries_filter,colors, width=
     of interest (like for example, closing price)
     returns: time series plotly figure 
     '''
-    # fig = go.Figure()
-
-    # for etf in fund_name:
-    #     etf_data = filtered_local[filtered_local['fund_symbol'] == etf]  # filter data for each ETF
-    #     fig.add_trace(go.Scatter(x=etf_data['price_date'], y=etf_data[timeseries_filter],
-    #         mode='lines', name=etf, hoverinfo='x+y'))
-
-    # # Customize the layout with titles and axis labels
-    # fig.update_layout(
-    #     title="ETF Price Tracker",
-    #     xaxis_title="Date",
-    #     yaxis_title=timeseries_filter,
-    #     legend_title="ETF",
-    #     hovermode="x unified",  # Shows the hover info for all traces at the same x-position
-    #     width=width,
-    #     height=height
-    # )
     fig = go.Figure()
     for i, etf in enumerate(fund_name):
         etf_data = filtered_local[filtered_local['fund_symbol'] == etf]
@@ -38,14 +21,29 @@ def make_time_series(fund_name, filtered_local, timeseries_filter,colors, width=
         ))
 
     fig.update_layout(
-        title="ETF Price Tracker",
+        # centering the title
+        title=dict(
+        text="ETF Price Tracker",
+        x=0.5, 
+        xanchor='center'
+        ),
         xaxis_title="Date",
         yaxis_title=timeseries_filter,
         legend_title="ETF",
         plot_bgcolor="#1C1C1C",
          paper_bgcolor="#1C1C1C",
          font=dict(color="#F0F0F0"),
-         hovermode="x unified"
+         hovermode="x unified",
+        xaxis=dict(
+        showgrid=True, 
+        # making semi-transparent grid color
+        gridcolor='rgba(255, 255, 255, 0.1)'  
+        ),
+        yaxis=dict(
+        showgrid=True, 
+        # making semi-transparent grid color
+        gridcolor='rgba(255, 255, 255, 0.1)'  
+        )
      )
 
     return fig
