@@ -13,7 +13,6 @@ pn.extension()
 
 # INITIALIZE API
 api = etf_API()
-api.load_df('data/ETFprices.csv')
 
 # WIDGET DECLARATIONS
 # Search Widgets

@@ -34,7 +34,6 @@ class etf_API:
         returns: list funds sorted in alphabetical order 
         '''
         funds = self.fund_df['fund_symbol'].unique()
-        print(funds, 'unique')
         return sorted(funds)
 
 
