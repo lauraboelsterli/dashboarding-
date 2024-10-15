@@ -169,7 +169,7 @@ card_width = 320
 
 options_card = pn.Card(
     pn.Column(
-        pn.pane.Markdown("### Price Trend Display Options"),  # Title for Price Trend Options
+        pn.pane.Markdown("### Price Tracker Display Options"),  # Title for Price Trend Options
         display_option,
         pn.pane.Markdown("### Volatility Analysis Display Options"),  # Title for Volatility Options
         volatility_display_option,
