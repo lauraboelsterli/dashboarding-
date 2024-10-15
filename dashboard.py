@@ -34,6 +34,14 @@ ts_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value
 ts_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=400)
 trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=50, value=300)
 trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=50, value=100)
+display_option = pn.widgets.RadioButtonGroup(
+    name='Display Options',
+    options=['Raw Data', 'Moving Average', 'Both'],
+    value='Raw Data',
+    width=300
+)
+# ma_window = pn.widgets.IntSlider(name="Moving Average Window", start=1, end=50, step=1, value=20)
+ma_window = pn.widgets.IntSlider(name="Moving Average Window", start=1, end=100, step=5, value=20)
 
 
 
@@ -61,20 +69,20 @@ def update_date_range(fund_name):
 
 # CALLBACK FUNCTIONS
 
-def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height):
-    '''-laura
-    params: fund_name (name of fund(s)(list or str)), timeseries_filter (market value of interest (str)), 
-    date_range_slider (start and end date (tuple), width (int), height (int)
-    does: given a fund name(s), a value of interest (e.g. open,close prices), and time range, a time series plot 
-    is plotted on plotly 
-    returns: a time series figure for one or more etf funds
+def get_plotly(fund_name, timeseries_filter, date_range_slider, width, height, ma_window, display_option):
     '''
-    # global filtered_local 
+    -laura
+    params: fund_name (name of fund(s)(list or str)), timeseries_filter (market value of interest (str)), 
+    date_range_slider (start and end date (tuple), width (int), height (int), ma_window (int), display_option (str)
+    does: given a fund name(s), a value of interest (e.g. open, close prices), and time range, a time series plot 
+    is plotted on plotly (plotting raw data and/or moving averages depeding on user widget choice on dashboard)
+    returns: a time series figure for one or more etf funds with optional moving averages
+    '''
     filtered_local = api.get_filtered_data(fund_name, timeseries_filter, date_range_slider)
-    # Generate a color palette for the selected ETFs
     colors = generate_color_palette(len(fund_name))
-    # plotting time series 
-    fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter, colors, width, height)
+
+    # Pass display options and moving average window to the plot function
+    fig = ts.make_time_series(fund_name, filtered_local, timeseries_filter, colors, width, height, ma_window, display_option)
 
     return fig
 
@@ -112,7 +120,8 @@ def generate_color_palette(n):
 
 
 # CALLBACK BINDINGS (Connecting widgets to callback functions)
-plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height)
+# plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height)
+plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height, ma_window, display_option)
 trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value, trend_width, trend_height)
 volume_indicators = pn.bind(get_total_volume_indicator, fund_name, date_range_slider.param.value)
 
@@ -136,6 +145,13 @@ search_card = pn.Card(
     sizing_mode='stretch_width',  
     collapsed=False
 )
+movingaverage_card = pn.Card(
+    pn.Column(display_option, ma_window),
+    title="Moving Average Option",
+    width=card_width,
+    sizing_mode='stretch_width',  
+    collapsed=False
+)
 
 plot_card = pn.Card(
     pn.Column(ts_width, ts_height),
@@ -155,6 +171,7 @@ trend_card = pn.Card(
 
 stacked_cards = pn.Column(
     search_card,
+    movingaverage_card,
     plot_card,
     trend_card,
     sizing_mode='stretch_width'
