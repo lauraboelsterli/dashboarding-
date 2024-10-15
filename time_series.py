@@ -28,7 +28,7 @@ def make_time_series(fund_name, filtered_local, timeseries_filter,colors, width=
         xanchor='center'
         ),
         xaxis_title="Date",
-        yaxis_title=timeseries_filter,
+        yaxis_title= f"{timeseries_filter.capitalize()} Price",
         legend_title="ETF",
         plot_bgcolor="#1C1C1C",
          paper_bgcolor="#1C1C1C",
