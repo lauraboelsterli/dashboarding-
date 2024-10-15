@@ -8,8 +8,7 @@ def make_trendindicators(fund_name, timeseries_filter, date_range_slider, colors
     timeseries_filter (str): a column name representing the value of interest (e.g., 'open', 'close') 
     date_range_slider (tuple of str): tuple containing the start and end dates to filter the data
     colors (list of str): list of colors in hex format, one for each fund symbol
-    width (int): width of each trend indicator widget
-    height (int): height of each trend indicator widget
+    width (int): width of each trend indicator widget, height (int): height of each trend indicator widget
     does:Creates a list of Trend indicator widgets for each fund symbol, visualizing the specified 
     timeseries data over the date range, retunring th emost recent price value and percent chnage over given time range
     returns: list of pn.indicators.Trend: A list of Panel Trend indicator widgets, one for each fund symbol
