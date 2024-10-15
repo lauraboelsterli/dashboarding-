@@ -1,3 +1,8 @@
+""""
+File: dashboard.py
+
+Description: The dashbaord file interacting with api from etf dataset 
+"""
 import panel as pn
 from dash_api import etf_API
 import datetime as dt
