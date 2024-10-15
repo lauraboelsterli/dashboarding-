@@ -12,6 +12,12 @@ class etf_API:
 
     fund_df = None  # dataframe
 
+    def __init__(self, file_path='data/ETFprices.csv'):
+        '''
+        initializing instance of df dataframe that will be used for the dashboard
+        '''
+        self.load_df(file_path)
+
     def load_df(self, filename):
         '''-laura
         params: filename (csv file)
@@ -20,10 +26,6 @@ class etf_API:
         self.fund_df = pd.read_csv(filename)
         # make sure its in datetime format for usability
         self.fund_df['price_date'] = pd.to_datetime(self.fund_df['price_date'])
-
-
-    def __init__(self, file_path='data/ETFprices.csv'):
-        self.load_df(file_path)
 
 
     def get_funds(self):
@@ -78,19 +80,7 @@ class etf_API:
 
 
 def main():
-
-    stockapi = etf_API()
-    stockapi.load_df('data/ETFprices.csv')
-    df= stockapi.fund_df
-    # print(df)
-    funds = stockapi.get_funds()
-    # print(funds)
-
-    # local = stockapi.extract_local_network(["AAA"], 'open')
-    # print(local)
-
-    options = stockapi.get_options()
-    # print(options)
+    etf_API()
 
 if __name__ == '__main__':
     main()

@@ -23,6 +23,9 @@ class etf_API:
 
 
     def __init__(self, file_path='data/ETFprices.csv'):
+        '''
+        initializing instance of df dataframe that will be used for the dashboard
+        '''
         self.load_df(file_path)
 
 
