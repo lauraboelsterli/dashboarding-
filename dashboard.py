@@ -40,7 +40,6 @@ display_option = pn.widgets.RadioButtonGroup(
     value='Raw Data',
     width=300
 )
-# ma_window = pn.widgets.IntSlider(name="Moving Average Window", start=1, end=50, step=1, value=20)
 ma_window = pn.widgets.IntSlider(name="Moving Average Window", start=1, end=100, step=5, value=20)
 
 
