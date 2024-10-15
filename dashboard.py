@@ -89,39 +89,6 @@ def get_trend_indicator(fund_name, timeseries_filter, date_range_slider, width=2
     return pn.Column(*trends)
 
 
-
-def get_total_volume_plot(fund_name, date_range_slider, width=600, height=400):
-    '''-laura 
-    params: fund_name (name of fund(s)(list or str)), 
-    date_range_slider (start and end date (tuple), width (int), height (int)
-    does: makes bar plots for total volume for each given fund
-    returns: figure of bar plot made on plotly 
-    '''
-    df = api.get_filtered_data(fund_name, 'volume', date_range_slider)
-    total_volumes = df.groupby('fund_symbol')['volume'].sum().reset_index()
-    colors = generate_color_palette(len(fund_name))
-
-    fig = go.Figure()
-    for i, etf in enumerate(total_volumes['fund_symbol']):
-        fig.add_trace(go.Bar(
-            x=[etf],
-            y=[total_volumes[total_volumes['fund_symbol'] == etf]['volume'].values[0]],
-            name=etf,
-            marker_color=colors[i]
-        ))
-
-    fig.update_layout(
-        title="Total Volume Traded Over Selected Date Range",
-        xaxis_title="ETF",
-        yaxis_title="Total Volume",
-        barmode='group',
-        plot_bgcolor="#1C1C1C",
-        paper_bgcolor="#1C1C1C",
-        font=dict(color="#F0F0F0")
-    )
-    return fig
-
-
 def get_total_volume_indicator(fund_name, date_range_slider, width=300, height=300):
     '''-laura 
     params: fund_name (name of fund(s)(list or str)), 
