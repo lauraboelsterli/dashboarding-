@@ -10,7 +10,6 @@ import time_series as ts
 import trend_indicator as trend_ind
 import volume_indicator as vol_ind
 import volatility as volatility 
-from volatility import make_volatility_chart
 import seaborn as sns
 
 # Loads javascript dependencies and configures Panel (required)
