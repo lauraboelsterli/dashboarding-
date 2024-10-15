@@ -35,6 +35,8 @@ ts_width = pn.widgets.IntSlider(name="Width", start=250, end=800, step=50, value
 ts_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=400)
 trend_width = pn.widgets.IntSlider(name="Width", start=50, end=600, step=25, value=300)
 trend_height = pn.widgets.IntSlider(name="Height", start=50, end=600, step=25, value=125)
+volatility_width = pn.widgets.IntSlider(name="Width", start=250, end=1000, step=50, value=800)
+volatility_height = pn.widgets.IntSlider(name="Height", start=200, end=800, step=50, value=500)
 # price trend display options
 display_option = pn.widgets.RadioButtonGroup(
     name='Display Options',
@@ -149,7 +151,7 @@ def generate_color_palette(n):
 plot = pn.bind(get_plotly, fund_name, timeseries_filter, date_range_slider, ts_width, ts_height, ma_window, display_option)
 trend_indicators = pn.bind(get_trend_indicator, fund_name, timeseries_filter, date_range_slider.param.value, trend_width, trend_height)
 volume_indicators = pn.bind(get_total_volume_indicator, fund_name, date_range_slider.param.value)
-volatility_chart = pn.bind(get_volatility_chart, fund_name, timeseries_filter, date_range_slider, ma_window, volatility_display_option)
+volatility_chart = pn.bind(get_volatility_chart, fund_name, timeseries_filter, date_range_slider, ma_window, volatility_display_option, volatility_width, volatility_height)
 
 # DASHBOARD WIDGET CONTAINERS ("CARDS")
 trend_indicators_scrollable = pn.Column(trend_indicators, scroll=True, height=400)  # Set height limit
@@ -204,11 +206,20 @@ trend_card = pn.Card(
     collapsed=True
 )
 
+volatility_card = pn.Card(
+    pn.Column(volatility_width, volatility_height),
+    title="ETF Volatility Dimensions",
+    width=card_width,
+    sizing_mode='stretch_width',  
+    collapsed=True
+)
+
 stacked_cards = pn.Column(
     search_card,
     options_card,  
     plot_card,
     trend_card,
+    volatility_card,
     sizing_mode='stretch_width'
 )
 
