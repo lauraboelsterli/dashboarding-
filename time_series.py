@@ -13,9 +13,9 @@ def make_time_series(fund_name, filtered_local, timeseries_filter, colors, width
     fig = go.Figure()
     
     for i, etf in enumerate(fund_name):
-        etf_data = filtered_local[filtered_local['fund_symbol'] == etf]
+        etf_data = filtered_local[filtered_local['fund_symbol'] == etf].copy()
         
-        # Plot raw data if selected or if 'Both' is chosen
+        # plot raw data if selected or if 'Both' is chosen
         if display_option in ['Raw Data', 'Both']:
             fig.add_trace(go.Scatter(
                 x=etf_data['price_date'],
@@ -27,8 +27,7 @@ def make_time_series(fund_name, filtered_local, timeseries_filter, colors, width
 
         # plot moving average if selected or if 'Both' is chosen
         if display_option in ['Moving Average', 'Both'] and ma_window > 1:
-            # etf_data['MA'] = etf_data[timeseries_filter].rolling(window=ma_window).mean()
-            etf_data.loc[:, 'MA'] = etf_data[timeseries_filter].rolling(window=ma_window).mean()
+            etf_data['MA'] = etf_data[timeseries_filter].rolling(window=ma_window).mean()
             fig.add_trace(go.Scatter(
                 x=etf_data['price_date'],
                 y=etf_data['MA'],
