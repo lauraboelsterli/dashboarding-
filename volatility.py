@@ -25,7 +25,7 @@ def make_volatility_chart(fund_name, filtered_local, timeseries_filter, colors, 
         etf_data['Volatility_Raw'] = etf_data[timeseries_filter].pct_change() * 100
 
         # calculate rolling standard deviation for volatility
-        # etf_data['Volatility_Rolling'] = etf_data['Volatility_Raw'].rolling(window=ma_window).std()
+        # automatically calculates the mean of the rolling window and then finds the stdard deviation
         etf_data['Volatility_Rolling'] = etf_data[timeseries_filter].rolling(window=ma_window).std()
 
         # plot raw volatility if selected or if 'Both' is chosen
