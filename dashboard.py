@@ -142,7 +142,6 @@ def get_volatility_chart(fund_name, timeseries_filter, date_range_slider, ma_win
     return fig
 
 def generate_color_palette(n):
-    '''nick'''
     return sns.color_palette("husl", n).as_hex()
 
 

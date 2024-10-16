@@ -1,4 +1,6 @@
 """"
+Author: Laura Boelsterli
+
 File: dash_api.py
 
 Description: The primary API for interacting with the etf dataset.
