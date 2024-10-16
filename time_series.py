@@ -1,3 +1,11 @@
+'''
+Author: Laura Boelsterli
+
+File: time_series.py
+
+Description: function to create etf time series
+'''
+
 import plotly.graph_objects as go
 
 def make_time_series(fund_name, filtered_local, timeseries_filter, colors, width=800, height=400, ma_window=20, display_option='Both'):

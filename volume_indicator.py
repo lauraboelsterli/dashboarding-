@@ -1,3 +1,10 @@
+'''
+Author: Laura Boelsterli
+
+File: volume_indicator.py
+
+Description: function to create total volumne of etf traded widget indicators 
+'''
 import panel as pn
 from dash_api import etf_API
 api = etf_API()

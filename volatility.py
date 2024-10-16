@@ -1,4 +1,10 @@
-# File: volatility_analysis.py
+'''
+Author: Laura Boelsterli
+
+File: volatility.py
+
+Description: function to create etf price volatility time series 
+'''
 import plotly.graph_objects as go
 
 def make_volatility_chart(fund_name, filtered_local, timeseries_filter, colors, ma_window=20, display_option='Both', width=800, height=550):

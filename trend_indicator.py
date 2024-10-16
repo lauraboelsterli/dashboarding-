@@ -1,3 +1,10 @@
+'''
+Author: Laura Boelsterli
+
+File: trend_indicator.py
+
+Description: function to create price trend indicators (most recent price and percent change)
+'''
 import panel as pn
 from dash_api import etf_API
 api = etf_API()

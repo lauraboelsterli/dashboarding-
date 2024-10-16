@@ -1,4 +1,6 @@
 """"
+Author: Laura Boelsterli
+
 File: dashboard.py
 
 Description: The dashbaord file interacting with api from etf dataset 
