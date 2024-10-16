@@ -34,7 +34,7 @@ def make_volindicator(fund_name, date_range_slider, width, height):
 
         # creating a Number indicator, using numeric value and adding the suffix in the name
         indicator = pn.indicators.Number(
-            name=f'Total Volume for {symbol} ({suffix})',
+            name=f'Total Volume Traded for {symbol} ({suffix})',
             value=display_value,  
             # formatting to one decimal place
             format='{value:.1f}',  
