@@ -21,18 +21,24 @@ def make_volatility_chart(fund_name, filtered_local, timeseries_filter, colors, 
     for i, etf in enumerate(fund_name):
         etf_data = filtered_local[filtered_local['fund_symbol'] == etf].copy()
 
-        # calculate raw daily percentage change
-        etf_data['Volatility_Raw'] = etf_data[timeseries_filter].pct_change() * 100
+        # # calculate raw daily percentage change
+        # etf_data['Volatility_Raw'] = etf_data[timeseries_filter].pct_change() * 100
 
-        # calculate rolling standard deviation for volatility
-        # automatically calculates the mean of the rolling window and then finds the stdard deviation
-        etf_data['Volatility_Rolling'] = etf_data[timeseries_filter].rolling(window=ma_window).std()
+        # # calculate rolling standard deviation for volatility
+        # # automatically calculates the mean of the rolling window and then finds the stdard deviation
+        # etf_data['Volatility_Rolling'] = etf_data[timeseries_filter].rolling(window=ma_window).std()
+
+        # calc daily percentage change (returns)
+        etf_data['Volatility_daily'] = etf_data[timeseries_filter].pct_change() * 100
+        # claculating rolling standard deviation of daily returns (volatility)
+        etf_data['Volatility_Rolling'] = etf_data['Volatility_daily'].rolling(window=ma_window).std()
+
 
         # plot raw volatility if selected or if 'Both' is chosen
         if display_option in ['Raw Data', 'Both']:
             fig.add_trace(go.Scatter(
                 x=etf_data['price_date'],
-                y=etf_data['Volatility_Raw'],
+                y=etf_data['Volatility_daily'],
                 mode='lines',
                 name=f"{etf} Daily % Change",
                 line=dict(color=colors[i], dash='solid')
