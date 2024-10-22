@@ -179,7 +179,7 @@ options_card = pn.Card(
         ma_window
     ),
     title="Rolling Window Graph Options",
-    width=card_width,
+    # width=card_width,
     sizing_mode='stretch_width',
     collapsed=True 
 )
@@ -187,7 +187,7 @@ options_card = pn.Card(
 search_card = pn.Card(
     pn.Column(fund_name, timeseries_filter, date_range_slider),
     title="Search",
-    width=card_width,
+    # width=card_width,
     sizing_mode='stretch_width',  
     collapsed=False
 )
@@ -201,7 +201,7 @@ plotandtrend_card = pn.Card(
         pn.Column(trend_width, trend_height)
     ),
     title="ETF Price Trend Tab Dimensions",
-    width=card_width,
+    # width=card_width,
     sizing_mode='stretch_width',
     collapsed=True 
 )
@@ -209,7 +209,7 @@ plotandtrend_card = pn.Card(
 volatility_card = pn.Card(
     pn.Column(volatility_width, volatility_height),
     title="ETF Volatility Tab Dimensions",
-    width=card_width,
+    # width=card_width,
     sizing_mode='stretch_width',  
     collapsed=True
 )
